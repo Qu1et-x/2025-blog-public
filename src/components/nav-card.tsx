@@ -26,34 +26,46 @@ import { HomeDraggableLayer } from '@/app/(home)/home-draggable-layer'
 
 const list = [
 	{
+		label: '首页',
+		href: '/',
+		isHome: true,
+		icon: null as any,
+		iconActive: null as any
+	},
+	{
 		icon: ScrollOutlineSVG,
 		iconActive: ScrollFilledSVG,
 		label: '近期文章',
-		href: '/blog'
+		href: '/blog',
+		isHome: false
 	},
 	{
 		icon: ProjectsOutlineSVG,
 		iconActive: ProjectsFilledSVG,
 		label: '我的项目',
-		href: '/projects'
+		href: '/projects',
+		isHome: false
 	},
 	{
 		icon: AboutOutlineSVG,
 		iconActive: AboutFilledSVG,
 		label: '关于网站',
-		href: '/about'
+		href: '/about',
+		isHome: false
 	},
 	{
 		icon: ShareOutlineSVG,
 		iconActive: ShareFilledSVG,
 		label: '推荐分享',
-		href: '/share'
+		href: '/share',
+		isHome: false
 	},
 	{
 		icon: WebsiteOutlineSVG,
 		iconActive: WebsiteFilledSVG,
 		label: '优秀博客',
-		href: '/bloggers'
+		href: '/bloggers',
+		isHome: false
 	}
 ]
 
@@ -138,11 +150,18 @@ export default function NavCard() {
 						</>
 					)}
 
-					<Link className='flex items-center gap-3' href='/'>
-						<Image src='/images/avatar.png' alt='avatar' width={40} height={40} style={{ boxShadow: ' 0 12px 20px -5px #E2D9CE' }} className='rounded-full' />
-						{form === 'full' && <span className='font-averia mt-1 text-2xl leading-none font-medium'>{siteContent.meta.title}</span>}
-						{form === 'full' && <span className='text-brand mt-2 text-xs font-medium'>(开发中)</span>}
-					</Link>
+					{form === 'mini' && (
+						<Link className='flex items-center gap-3' href='/'>
+							<Image
+								src='/images/avatar.png'
+								alt='avatar'
+								width={40}
+								height={40}
+								style={{ boxShadow: ' 0 12px 20px -5px #E2D9CE' }}
+								className='rounded-full'
+							/>
+						</Link>
+					)}
 
 					{(form === 'full' || form === 'icons') && (
 						<>
@@ -178,9 +197,26 @@ export default function NavCard() {
 										className={cn('text-secondary text-md relative z-10 flex items-center gap-3 rounded-full px-5 py-3', form === 'icons' && 'p-0')}
 										onMouseEnter={() => setHoveredIndex(index)}>
 										<div className='flex h-7 w-7 items-center justify-center'>
-											{hoveredIndex == index ? <item.iconActive className='text-brand absolute h-7 w-7' /> : <item.icon className='absolute h-7 w-7' />}
+											{item.isHome ? (
+												<Image
+													src='/images/avatar.png'
+													alt='avatar'
+													width={40}
+													height={40}
+													style={{ boxShadow: ' 0 12px 20px -5px #E2D9CE' }}
+													className='rounded-full'
+												/>
+											) : hoveredIndex == index ? (
+												<item.iconActive className='text-brand absolute h-7 w-7' />
+											) : (
+												<item.icon className='absolute h-7 w-7' />
+											)}
 										</div>
-										{form !== 'icons' && <span className={clsx(index == hoveredIndex && 'text-primary font-medium')}>{item.label}</span>}
+										{form !== 'icons' && (
+											<span className={clsx(index == hoveredIndex && 'text-primary font-medium')}>
+												{item.isHome ? siteContent.meta.title : item.label}
+											</span>
+										)}
 									</Link>
 								))}
 							</div>
