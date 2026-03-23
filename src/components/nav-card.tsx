@@ -26,11 +26,11 @@ import { HomeDraggableLayer } from '@/app/(home)/home-draggable-layer'
 
 const list = [
 	{
+		icon: null as any,
+		iconActive: null as any,
 		label: '首页',
 		href: '/',
-		isHome: true,
-		icon: null as any,
-		iconActive: null as any
+		isHome: true
 	},
 	{
 		icon: ScrollOutlineSVG,
@@ -165,7 +165,7 @@ export default function NavCard() {
 
 					{(form === 'full' || form === 'icons') && (
 						<>
-							{form !== 'icons' && <div className='text-secondary mt-6 text-sm uppercase'>General</div>}
+							{form !== 'icons' && <div className='text-secondary mt-6 text-sm '>导航栏</div>}
 
 							<div className={cn('relative mt-2 space-y-2', form === 'icons' && 'mt-0 flex items-center gap-6 space-y-0')}>
 								<motion.div
