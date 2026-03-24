@@ -18,16 +18,26 @@ import ShareOutlineSVG from '@/svgs/share-outline.svg'
 import WebsiteFilledSVG from '@/svgs/website-filled.svg'
 import WebsiteOutlineSVG from '@/svgs/website-outline.svg'
 import { usePathname } from 'next/navigation'
-import clsx from 'clsx'
 import { cn } from '@/lib/utils'
 import { useSize } from '@/hooks/use-size'
 import { useConfigStore } from '@/app/(home)/stores/config-store'
 import { HomeDraggableLayer } from '@/app/(home)/home-draggable-layer'
 
+const AvatarIcon = ({ className }: { className?: string }) => (
+	<Image
+		src='/images/avatar.png'
+		alt='avatar'
+		width={40}
+		height={40}
+		style={{ boxShadow: ' 0 12px 20px -5px #E2D9CE' }}
+		className={cn('rounded-full object-cover', className)}
+	/>
+)
+
 const list = [
 	{
-		icon: null as any,
-		iconActive: null as any,
+		icon: AvatarIcon,
+		iconActive: AvatarIcon,
 		label: '首页',
 		href: '/',
 		isHome: true
@@ -71,12 +81,36 @@ const list = [
 
 const extraSize = 8
 
+const NavItemContent = ({ item, isHovered, children }: { item: (typeof list)[0]; isHovered: boolean; children?: React.ReactNode }) => {
+	const Icon = isHovered ? item.iconActive : item.icon
+	return (
+		<div
+			className={cn(
+				'flex items-center gap-3 transition-transform duration-300 ease-out origin-left',
+				isHovered ? 'scale-110' : 'scale-100'
+			)}>
+			<div className='flex h-7 w-7 items-center justify-center'>
+				<Icon
+					className={cn(
+						'transition-colors duration-300',
+						!item.isHome && 'h-7 w-7',
+						!item.isHome && isHovered && 'text-brand'
+					)}
+				/>
+			</div>
+			{children}
+		</div>
+	)
+}
+
 export default function NavCard() {
 	const pathname = usePathname()
 	const center = useCenterStore()
 	const [show, setShow] = useState(false)
 	const { maxSM } = useSize()
 	const [hoveredIndex, setHoveredIndex] = useState<number>(0)
+	const [miniHovered, setMiniHovered] = useState(false)
+	const [isHoveringNav, setIsHoveringNav] = useState(false)
 	const { siteContent, cardStyles } = useConfigStore()
 	const styles = cardStyles.navCard
 	const hiCardStyles = cardStyles.hiCard
@@ -87,12 +121,18 @@ export default function NavCard() {
 	}, [pathname])
 
 	useEffect(() => {
+		if (activeIndex !== undefined) {
+			setHoveredIndex(activeIndex)
+		}
+	}, [activeIndex])
+
+	useEffect(() => {
 		setShow(true)
 	}, [])
 
 	let form = useMemo(() => {
-		if (pathname == '/') return 'full'
-		else if (pathname == '/write') return 'mini'
+		if (pathname === '/') return 'full'
+		else if (pathname === '/write') return 'mini'
 		else return 'icons'
 	}, [pathname])
 	if (maxSM) form = 'icons'
@@ -119,13 +159,13 @@ export default function NavCard() {
 	}, [form, styles])
 
 	useEffect(() => {
-		if (form === 'icons' && activeIndex !== undefined && hoveredIndex !== activeIndex) {
+		if (form !== 'mini' && !isHoveringNav && activeIndex !== undefined && hoveredIndex !== activeIndex) {
 			const timer = setTimeout(() => {
 				setHoveredIndex(activeIndex)
-			}, 1500)
+			}, 500)
 			return () => clearTimeout(timer)
 		}
-	}, [hoveredIndex, activeIndex, form])
+	}, [hoveredIndex, activeIndex, form, isHoveringNav])
 
 	if (maxSM) position = { x: center.x - size.width / 2, y: 16 }
 
@@ -138,7 +178,7 @@ export default function NavCard() {
 					height={size.height}
 					x={position.x}
 					y={position.y}
-					className={clsx(form != 'full' && 'overflow-hidden', form === 'mini' && 'p-3', form === 'icons' && 'flex items-center gap-6 p-3')}>
+					className={cn(form !== 'full' && 'overflow-hidden', form === 'mini' && 'p-3', form === 'icons' && 'flex items-center gap-6 p-3')}>
 					{form === 'full' && siteContent.enableChristmas && (
 						<>
 							<img
@@ -151,15 +191,12 @@ export default function NavCard() {
 					)}
 
 					{form === 'mini' && (
-						<Link className='flex items-center gap-3' href='/'>
-							<Image
-								src='/images/avatar.png'
-								alt='avatar'
-								width={40}
-								height={40}
-								style={{ boxShadow: ' 0 12px 20px -5px #E2D9CE' }}
-								className='rounded-full'
-							/>
+						<Link
+							className='flex items-center gap-3'
+							href='/'
+							onMouseEnter={() => setMiniHovered(true)}
+							onMouseLeave={() => setMiniHovered(false)}>
+							<NavItemContent item={list[0]} isHovered={miniHovered} />
 						</Link>
 					)}
 
@@ -167,7 +204,10 @@ export default function NavCard() {
 						<>
 							{form !== 'icons' && <div className='text-secondary mt-6 text-sm '>导航栏</div>}
 
-							<div className={cn('relative mt-2 space-y-2', form === 'icons' && 'mt-0 flex items-center gap-6 space-y-0')}>
+							<div
+								className={cn('relative mt-2 space-y-2', form === 'icons' && 'mt-0 flex items-center gap-6 space-y-0')}
+								onMouseEnter={() => setIsHoveringNav(true)}
+								onMouseLeave={() => setIsHoveringNav(false)}>
 								<motion.div
 									className='absolute max-w-[230px] rounded-full border'
 									layoutId='nav-hover'
@@ -190,35 +230,24 @@ export default function NavCard() {
 									style={{ backgroundImage: 'linear-gradient(to right bottom, var(--color-border) 60%, var(--color-card) 100%)' }}
 								/>
 
-								{list.map((item, index) => (
-									<Link
-										key={item.href}
-										href={item.href}
-										className={cn('text-secondary text-md relative z-10 flex items-center gap-3 rounded-full px-5 py-3', form === 'icons' && 'p-0')}
-										onMouseEnter={() => setHoveredIndex(index)}>
-										<div className='flex h-7 w-7 items-center justify-center'>
-											{item.isHome ? (
-												<Image
-													src='/images/avatar.png'
-													alt='avatar'
-													width={40}
-													height={40}
-													style={{ boxShadow: ' 0 12px 20px -5px #E2D9CE' }}
-													className='rounded-full'
-												/>
-											) : hoveredIndex == index ? (
-												<item.iconActive className='text-brand absolute h-7 w-7' />
-											) : (
-												<item.icon className='absolute h-7 w-7' />
-											)}
-										</div>
-										{form !== 'icons' && (
-											<span className={clsx(index == hoveredIndex && 'text-primary font-medium')}>
-												{item.isHome ? siteContent.meta.title : item.label}
-											</span>
-										)}
-									</Link>
-								))}
+								{list.map((item, index) => {
+									const isHovered = hoveredIndex === index
+									return (
+										<Link
+											key={item.href}
+											href={item.href}
+											className={cn('text-secondary text-md relative z-10 flex items-center gap-3 rounded-full px-5 py-3', form === 'icons' && 'p-0')}
+											onMouseEnter={() => setHoveredIndex(index)}>
+											<NavItemContent item={item} isHovered={isHovered}>
+												{form !== 'icons' && (
+													<span className={cn(isHovered && 'text-primary font-medium')}>
+														{item.isHome ? siteContent.meta.title : item.label}
+													</span>
+												)}
+											</NavItemContent>
+										</Link>
+									)
+								})}
 							</div>
 						</>
 					)}
