@@ -45,35 +45,35 @@ const list = [
 	{
 		icon: ScrollOutlineSVG,
 		iconActive: ScrollFilledSVG,
-		label: '近期文章',
+		label: '文章',
 		href: '/blog',
 		isHome: false
 	},
 	{
 		icon: ProjectsOutlineSVG,
 		iconActive: ProjectsFilledSVG,
-		label: '我的项目',
+		label: '项目',
 		href: '/projects',
 		isHome: false
 	},
 	{
 		icon: ShareOutlineSVG,
 		iconActive: ShareFilledSVG,
-		label: '推荐分享',
+		label: '分享',
 		href: '/share',
 		isHome: false
 	},
 	{
 		icon: WebsiteOutlineSVG,
 		iconActive: WebsiteFilledSVG,
-		label: '优秀博客',
+		label: '友链',
 		href: '/bloggers',
 		isHome: false
 	},
 	{
 		icon: AboutOutlineSVG,
 		iconActive: AboutFilledSVG,
-		label: '关于网站',
+		label: '关于',
 		href: '/about',
 		isHome: false
 	}
@@ -81,13 +81,24 @@ const list = [
 
 const extraSize = 8
 
-const NavItemContent = ({ item, isHovered, children }: { item: (typeof list)[0]; isHovered: boolean; children?: React.ReactNode }) => {
+const NavItemContent = ({
+	item,
+	isHovered,
+	form,
+	children
+}: {
+	item: (typeof list)[0]
+	isHovered: boolean
+	form: string
+	children?: React.ReactNode
+}) => {
 	const Icon = isHovered ? item.iconActive : item.icon
 	return (
 		<div
 			className={cn(
-				'flex items-center gap-3 transition-transform duration-300 ease-out origin-left',
-				isHovered ? 'scale-110' : 'scale-100'
+				'flex items-center gap-3 transition-transform duration-300 ease-out',
+				form === 'icons' ? 'origin-center' : 'origin-left',
+				isHovered ? 'scale-120' : 'scale-100'
 			)}>
 			<div className='flex h-7 w-7 items-center justify-center'>
 				<Icon
@@ -196,52 +207,50 @@ export default function NavCard() {
 							href='/'
 							onMouseEnter={() => setMiniHovered(true)}
 							onMouseLeave={() => setMiniHovered(false)}>
-							<NavItemContent item={list[0]} isHovered={miniHovered} />
+							<NavItemContent item={list[0]} isHovered={miniHovered} form={form} />
 						</Link>
 					)}
 
 					{(form === 'full' || form === 'icons') && (
 						<>
-							{form !== 'icons' && <div className='text-secondary mt-6 text-sm '>导航栏</div>}
+							{form !== 'icons' && <div className='text-secondary text-sm '>导航栏</div>}
 
 							<div
-								className={cn('relative mt-2 space-y-2', form === 'icons' && 'mt-0 flex items-center gap-6 space-y-0')}
+								className={cn('relative mt-2', form === 'icons' ? 'mt-0 flex w-full items-center justify-around' : 'flex flex-col space-y-2')}
 								onMouseEnter={() => setIsHoveringNav(true)}
 								onMouseLeave={() => setIsHoveringNav(false)}>
-								<motion.div
-									className='absolute max-w-[230px] rounded-full border'
-									layoutId='nav-hover'
-									initial={false}
-									animate={
-										form === 'icons'
-											? {
-													left: hoveredIndex * (itemHeight + 24) - extraSize,
-													top: -extraSize,
-													width: itemHeight + extraSize * 2,
-													height: itemHeight + extraSize * 2
-												}
-											: { top: hoveredIndex * (itemHeight + 8), left: 0, width: '100%', height: itemHeight }
-									}
-									transition={{
-										type: 'spring',
-										stiffness: 400,
-										damping: 30
-									}}
-									style={{ backgroundImage: 'linear-gradient(to right bottom, var(--color-border) 60%, var(--color-card) 100%)' }}
-								/>
-
 								{list.map((item, index) => {
 									const isHovered = hoveredIndex === index
 									return (
 										<Link
 											key={item.href}
 											href={item.href}
-											className={cn('text-secondary text-md relative z-10 flex items-center gap-3 rounded-full px-5 py-3', form === 'icons' && 'p-0')}
+											className={cn(
+												'text-secondary text-md relative flex items-center rounded-full transition-colors',
+												form === 'icons' ? 'p-2' : 'w-full gap-3 px-5 py-3'
+											)}
 											onMouseEnter={() => setHoveredIndex(index)}>
-											<NavItemContent item={item} isHovered={isHovered}>
+											{isHovered && (
+												<motion.div
+													layoutId='nav-hover'
+													className='absolute inset-0 rounded-full border'
+													initial={false}
+													transition={{
+														type: 'spring',
+														stiffness: 400,
+														damping: 30
+													}}
+													style={{
+														backgroundImage:
+															'linear-gradient(to right bottom, var(--color-border) 60%, var(--color-card) 100%)',
+														zIndex: -1
+													}}
+												/>
+											)}
+											<NavItemContent item={item} isHovered={isHovered} form={form}>
 												{form !== 'icons' && (
 													<span className={cn(isHovered && 'text-primary font-medium')}>
-														{item.isHome ? siteContent.meta.title : item.label}
+														{item.label}
 													</span>
 												)}
 											</NavItemContent>
