@@ -1,12 +1,9 @@
 'use client'
 
-import Card from '@/components/card'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useEffect, useMemo, useState } from 'react'
 import { motion } from 'motion/react'
-import { useCenterStore } from '@/hooks/use-center'
-import { CARD_SPACING } from '@/consts'
 import ScrollOutlineSVG from '@/svgs/scroll-outline.svg'
 import ScrollFilledSVG from '@/svgs/scroll-filled.svg'
 import ProjectsFilledSVG from '@/svgs/projects-filled.svg'
@@ -21,7 +18,7 @@ import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { useSize } from '@/hooks/use-size'
 import { useConfigStore } from '@/app/(home)/stores/config-store'
-import { HomeDraggableLayer } from '@/app/(home)/home-draggable-layer'
+import { BaseCard } from '@/app/(home)/components/base-card'
 
 const AvatarIcon = ({ className }: { className?: string }) => (
 	<Image
@@ -79,8 +76,6 @@ const list = [
 	}
 ]
 
-const extraSize = 8
-
 const NavItemContent = ({
 	item,
 	isHovered,
@@ -116,15 +111,12 @@ const NavItemContent = ({
 
 export default function NavCard() {
 	const pathname = usePathname()
-	const center = useCenterStore()
-	const [show, setShow] = useState(false)
 	const { maxSM } = useSize()
 	const [hoveredIndex, setHoveredIndex] = useState<number>(0)
 	const [miniHovered, setMiniHovered] = useState(false)
 	const [isHoveringNav, setIsHoveringNav] = useState(false)
 	const { siteContent, cardStyles } = useConfigStore()
 	const styles = cardStyles.navCard
-	const hiCardStyles = cardStyles.hiCard
 
 	const activeIndex = useMemo(() => {
 		const index = list.findIndex(item => pathname === item.href)
@@ -137,31 +129,12 @@ export default function NavCard() {
 		}
 	}, [activeIndex])
 
-	useEffect(() => {
-		setShow(true)
-	}, [])
-
 	let form = useMemo(() => {
 		if (pathname === '/') return 'full'
 		else if (pathname === '/write') return 'mini'
 		else return 'icons'
 	}, [pathname])
 	if (maxSM) form = 'icons'
-
-	const itemHeight = form === 'full' ? 52 : 28
-
-	let position = useMemo(() => {
-		if (form === 'full') {
-			const x = styles.offsetX !== null ? center.x + styles.offsetX : center.x - hiCardStyles.width / 2 - styles.width - CARD_SPACING
-			const y = styles.offsetY !== null ? center.y + styles.offsetY : center.y + hiCardStyles.height / 2 - styles.height
-			return { x, y }
-		}
-
-		return {
-			x: 24,
-			y: 16
-		}
-	}, [form, center, styles, hiCardStyles])
 
 	const size = useMemo(() => {
 		if (form === 'mini') return { width: 64, height: 64 }
@@ -178,89 +151,82 @@ export default function NavCard() {
 		}
 	}, [hoveredIndex, activeIndex, form, isHoveringNav])
 
-	if (maxSM) position = { x: center.x - size.width / 2, y: 16 }
+	return (
+		<BaseCard
+			cardKey='navCard'
+			width={size.width}
+			height={size.height}
+			className={cn(form !== 'full' && 'overflow-hidden', form === 'mini' && 'p-3', form === 'icons' && 'flex items-center gap-6 p-3')}>
+			{form === 'full' && siteContent.enableChristmas && (
+				<>
+					<img
+						src='/images/christmas/snow-4.webp'
+						alt='Christmas decoration'
+						className='pointer-events-none absolute'
+						style={{ width: 160, left: -18, top: -20, opacity: 0.9 }}
+					/>
+				</>
+			)}
 
-	if (show)
-		return (
-			<HomeDraggableLayer cardKey='navCard' x={position.x} y={position.y} width={styles.width} height={styles.height}>
-				<Card
-					order={styles.order}
-					width={size.width}
-					height={size.height}
-					x={position.x}
-					y={position.y}
-					className={cn(form !== 'full' && 'overflow-hidden', form === 'mini' && 'p-3', form === 'icons' && 'flex items-center gap-6 p-3')}>
-					{form === 'full' && siteContent.enableChristmas && (
-						<>
-							<img
-								src='/images/christmas/snow-4.webp'
-								alt='Christmas decoration'
-								className='pointer-events-none absolute'
-								style={{ width: 160, left: -18, top: -20, opacity: 0.9 }}
-							/>
-						</>
-					)}
+			{form === 'mini' && (
+				<Link
+					className='flex items-center gap-3'
+					href='/'
+					onMouseEnter={() => setMiniHovered(true)}
+					onMouseLeave={() => setMiniHovered(false)}>
+					<NavItemContent item={list[0]} isHovered={miniHovered} form={form} />
+				</Link>
+			)}
 
-					{form === 'mini' && (
-						<Link
-							className='flex items-center gap-3'
-							href='/'
-							onMouseEnter={() => setMiniHovered(true)}
-							onMouseLeave={() => setMiniHovered(false)}>
-							<NavItemContent item={list[0]} isHovered={miniHovered} form={form} />
-						</Link>
-					)}
+			{(form === 'full' || form === 'icons') && (
+				<>
+					{form !== 'icons' && <div className='text-secondary text-sm '>导航栏</div>}
 
-					{(form === 'full' || form === 'icons') && (
-						<>
-							{form !== 'icons' && <div className='text-secondary text-sm '>导航栏</div>}
-
-							<div
-								className={cn('relative mt-2', form === 'icons' ? 'mt-0 flex w-full items-center justify-around' : 'flex flex-col space-y-2')}
-								onMouseEnter={() => setIsHoveringNav(true)}
-								onMouseLeave={() => setIsHoveringNav(false)}>
-								{list.map((item, index) => {
-									const isHovered = hoveredIndex === index
-									return (
-										<Link
-											key={item.href}
-											href={item.href}
-											className={cn(
-												'text-secondary text-md relative flex items-center rounded-full transition-colors',
-												form === 'icons' ? 'p-2' : 'w-full gap-3 px-5 py-3'
-											)}
-											onMouseEnter={() => setHoveredIndex(index)}>
-											{isHovered && (
-												<motion.div
-													layoutId='nav-hover'
-													className='absolute inset-0 rounded-full border'
-													initial={false}
-													transition={{
-														type: 'spring',
-														stiffness: 400,
-														damping: 30
-													}}
-													style={{
-														backgroundImage:
-															'linear-gradient(to right bottom, var(--color-border) 60%, var(--color-card) 100%)',
-														zIndex: -1
-													}}
-												/>
-											)}
-											<NavItemContent item={item} isHovered={isHovered} form={form}>
-												{form !== 'icons' && (
-													<span className={cn(isHovered && 'text-primary font-medium')}>
-														{item.label}
-													</span>
-												)}
-											</NavItemContent>
-										</Link>
-									)
-								})}
-							</div>
-						</>
-					)}
-				</Card>
-			</HomeDraggableLayer>
-		)
+					<div
+						className={cn('relative mt-2', form === 'icons' ? 'mt-0 flex w-full items-center justify-around' : 'flex flex-col space-y-2')}
+						onMouseEnter={() => setIsHoveringNav(true)}
+						onMouseLeave={() => setIsHoveringNav(false)}>
+						{list.map((item, index) => {
+							const isHovered = hoveredIndex === index
+							return (
+								<Link
+									key={item.href}
+									href={item.href}
+									className={cn(
+										'text-secondary text-md relative flex items-center rounded-full transition-colors',
+										form === 'icons' ? 'p-2' : 'w-full gap-3 px-5 py-3'
+									)}
+									onMouseEnter={() => setHoveredIndex(index)}>
+									{isHovered && (
+										<motion.div
+											layoutId='nav-hover'
+											className='absolute inset-0 rounded-full border'
+											initial={false}
+											transition={{
+												type: 'spring',
+												stiffness: 400,
+												damping: 30
+											}}
+											style={{
+												backgroundImage:
+													'linear-gradient(to right bottom, var(--color-border) 60%, var(--color-card) 100%)',
+												zIndex: -1
+											}}
+										/>
+									)}
+									<NavItemContent item={item} isHovered={isHovered} form={form}>
+										{form !== 'icons' && (
+											<span className={cn(isHovered && 'text-primary font-medium')}>
+												{item.label}
+											</span>
+										)}
+									</NavItemContent>
+								</Link>
+							)
+						})}
+					</div>
+				</>
+			)}
+		</BaseCard>
+	)
 }

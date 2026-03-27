@@ -1,6 +1,5 @@
-import { useCenterStore } from '@/hooks/use-center'
 import GithubSVG from '@/svgs/github.svg'
-import { ANIMATION_DELAY, CARD_SPACING } from '@/consts'
+import { ANIMATION_DELAY } from '@/consts'
 import { useConfigStore } from './stores/config-store'
 import JuejinSVG from '@/svgs/juejin.svg'
 import EmailSVG from '@/svgs/email.svg'
@@ -20,8 +19,9 @@ import { useEffect, useState, useMemo, useRef } from 'react'
 import type React from 'react'
 import { toast } from 'sonner'
 import { useSize } from '@/hooks/use-size'
-import { HomeDraggableLayer } from './home-draggable-layer'
+import { BaseCard } from './components/base-card'
 import { createPortal } from 'react-dom'
+import { useHomeLayout } from './hooks/use-home-layout'
 
 type SocialButtonType =
 	| 'github'
@@ -49,11 +49,10 @@ interface SocialButtonConfig {
 }
 
 export default function SocialButtons() {
-	const center = useCenterStore()
-	const { cardStyles, siteContent } = useConfigStore()
+	const { siteContent } = useConfigStore()
 	const { maxSM, init } = useSize()
-	const styles = cardStyles.socialButtons
-	const hiCardStyles = cardStyles.hiCard
+	const layout = useHomeLayout()
+	const styles = layout.socialButtons
 	const order = maxSM && init ? 0 : styles.order
 	const delay = maxSM && init ? 0 : 100
 
@@ -103,9 +102,6 @@ export default function SocialButtons() {
 			}
 		}
 	}, [openDropdowns])
-
-	const x = styles.offsetX !== null ? center.x + styles.offsetX : center.x + hiCardStyles.width / 2 - styles.width
-	const y = styles.offsetY !== null ? center.y + styles.offsetY : center.y + hiCardStyles.height / 2 + CARD_SPACING
 
 	if (!showStates.container) return null
 
@@ -259,12 +255,10 @@ export default function SocialButtons() {
 	}
 
 	return (
-		<HomeDraggableLayer cardKey='socialButtons' x={x} y={y} width={styles.width} height={styles.height}>
-			<motion.div className='absolute max-sm:static' animate={{ left: x, top: y }} initial={{ left: x, top: y }}>
-				<div className='absolute top-0 left-0 flex flex-row-reverse items-center gap-3 max-sm:static' style={{ width: styles.width }}>
-					{sortedButtons.map(button => renderButton(button))}
-				</div>
-			</motion.div>
-		</HomeDraggableLayer>
+		<BaseCard cardKey='socialButtons' className='bg-transparent border-none p-0 shadow-none ring-0'>
+			<div className='flex flex-row-reverse items-center gap-3 max-sm:flex-row max-sm:justify-center' style={{ width: '100%' }}>
+				{sortedButtons.map(button => renderButton(button))}
+			</div>
+		</BaseCard>
 	)
 }

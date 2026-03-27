@@ -1,39 +1,21 @@
-import { ANIMATION_DELAY, CARD_SPACING } from '@/consts'
 import PenSVG from '@/svgs/pen.svg'
 import { motion } from 'motion/react'
-import { useEffect, useState } from 'react'
 import { useConfigStore } from './stores/config-store'
-import { useCenterStore } from '@/hooks/use-center'
 import { useRouter } from 'next/navigation'
 import { useSize } from '@/hooks/use-size'
 import DotsSVG from '@/svgs/dots.svg'
-import { HomeDraggableLayer } from './home-draggable-layer'
+import { BaseCard } from './components/base-card'
 
 export default function WriteButton() {
-	const center = useCenterStore()
-	const { cardStyles, setConfigDialogOpen, siteContent } = useConfigStore()
+	const { setConfigDialogOpen, siteContent } = useConfigStore()
 	const { maxSM } = useSize()
 	const router = useRouter()
-	const styles = cardStyles.writeButtons
-	const hiCardStyles = cardStyles.hiCard
-	const clockCardStyles = cardStyles.clockCard
-
-	const [show, setShow] = useState(false)
-
-	useEffect(() => {
-		setTimeout(() => setShow(true), styles.order * ANIMATION_DELAY * 1000)
-	}, [styles.order])
 
 	if (maxSM) return null
 
-	if (!show) return null
-
-	const x = styles.offsetX !== null ? center.x + styles.offsetX : center.x + CARD_SPACING + hiCardStyles.width / 2
-	const y = styles.offsetY !== null ? center.y + styles.offsetY : center.y - clockCardStyles.offset - styles.height - CARD_SPACING / 2 - clockCardStyles.height
-
 	return (
-		<HomeDraggableLayer cardKey='writeButtons' x={x} y={y} width={styles.width} height={styles.height}>
-			<motion.div initial={{ left: x, top: y }} animate={{ left: x, top: y }} className='absolute flex items-center gap-4'>
+		<BaseCard cardKey='writeButtons' className='bg-transparent border-none p-0 shadow-none ring-0'>
+			<div className='flex items-center gap-4'>
 				<motion.button
 					onClick={() => router.push('/write')}
 					initial={{ opacity: 0, scale: 0.6 }}
@@ -65,7 +47,7 @@ export default function WriteButton() {
 					className='p-2'>
 					<DotsSVG className='h-6 w-6' />
 				</motion.button>
-			</motion.div>
-		</HomeDraggableLayer>
+			</div>
+		</BaseCard>
 	)
 }
